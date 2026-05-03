@@ -92,6 +92,8 @@ int main() {
     std::vector<Node> nodes;
     // Stores all the Edges
     std::vector<Edge> edges;
+    // Stores the currently selected Nodes
+    std::vector<Node*> selectedNodes;
     // Determines if they are currently adding a Node
     bool isAddingNode = false;
     // Determines if they are currently adding a Edge
@@ -102,46 +104,69 @@ int main() {
             if (event->is<sf::Event::Closed>())
                 window.close();
 
-            // Handle Button Clicks
+            // Handle Clicks
             if (event->is<sf::Event::MouseButtonPressed>()) {
                 auto mouseEvent = event->getIf<sf::Event::MouseButtonPressed>();
                 if (mouseEvent->button == sf::Mouse::Button::Left) {
                     sf::Vector2f mousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
 
-                    // Checks if mouse click is inside text box
-                    txtRadius->isSelected = txtRadius->box.getGlobalBounds().contains(mousePos);
+                    bool clickedNode = false;
+                    if (!isAddingNode) {
+                        for (auto& node : nodes) {
+                            if (node.shape.getGlobalBounds().contains(mousePos)) {
+                                clickedNode = true;
+                                if (node.isSelected) {
+                                    // Deselect
+                                    node.isSelected = false;
+                                    selectedNodes.erase(std::remove(selectedNodes.begin(), selectedNodes.end(), &node), selectedNodes.end());
+                                }
+                                else if (selectedNodes.size() < 2) {
+                                    // Select if we have room
+                                    node.isSelected = true;
+                                    selectedNodes.push_back(&node);
+                                }
+                                break; // Stop after finding the node the user clicked
+                            }
+                        }
+                    }
 
-                    if (btnAddNode->isClicked(mousePos)) {
-                        std::cout << "Add Node Clicked\n";
-                        isAddingNode = true;
-                        std::cout << "User Is Placing Node\n";
-                    }
-                    else if (isAddingNode) {
-                        nodes.emplace_back(mousePos);
+                    if (!clickedNode) {
+                        // Checks if mouse click is inside text box
+                        txtRadius->isSelected = txtRadius->box.getGlobalBounds().contains(mousePos);
 
-                        // Automatically connect based on the radius in the TextBox
-                        recalculateEdges(nodes, edges, txtRadius->getValue());
+                        // Checks if mouse clicked on a button
+                        if (btnAddNode->isClicked(mousePos)) {
+                            std::cout << "Add Node Clicked\n";
+                            isAddingNode = true;
+                            std::cout << "User Is Placing Node\n";
+                        }
+                        else if (isAddingNode) {
+                            nodes.emplace_back(mousePos, static_cast<int>(nodes.size()));
 
-                        isAddingNode = false; // puts the node down on the map
-                        std::cout << "Node Added at: " << mousePos.x << ", " << mousePos.y << "\n";
-                    }
-                    if (btnDelNode->isClicked(mousePos)) {
-                        std::cout << "Delete Node Clicked\n";
-                    }
-                    if (btnAddEdge->isClicked(mousePos)) {
-                        std::cout << "Add Edge Clicked\n";
-                    }
-                    if (btnDelEdge->isClicked(mousePos)) {
-                        std::cout << "Delete Edge Clicked\n";
-                    }
-                    if (btnClear->isClicked(mousePos)) {
-                        std::cout << "Clear All Clicked\n";
-                    }
-                    if (btnLoad->isClicked(mousePos)) {
-                        std::cout << "Load Clicked\n";
-                    }
-                    if (btnSave->isClicked(mousePos)) {
-                        std::cout << "Save Clicked\n";
+                            // Automatically connect based on the radius in the TextBox
+                            recalculateEdges(nodes, edges, txtRadius->getValue());
+
+                            isAddingNode = false; // puts the node down on the map
+                            std::cout << "Node Added at: " << mousePos.x << ", " << mousePos.y << "\n";
+                        }
+                        if (btnDelNode->isClicked(mousePos)) {
+                            std::cout << "Delete Node Clicked\n";
+                        }
+                        if (btnAddEdge->isClicked(mousePos)) {
+                            std::cout << "Add Edge Clicked\n";
+                        }
+                        if (btnDelEdge->isClicked(mousePos)) {
+                            std::cout << "Delete Edge Clicked\n";
+                        }
+                        if (btnClear->isClicked(mousePos)) {
+                            std::cout << "Clear All Clicked\n";
+                        }
+                        if (btnLoad->isClicked(mousePos)) {
+                            std::cout << "Load Clicked\n";
+                        }
+                        if (btnSave->isClicked(mousePos)) {
+                            std::cout << "Save Clicked\n";
+                        }
                     }
                 }
             }
@@ -153,6 +178,19 @@ int main() {
                 // recalculateEdges(nodes, edges, txtRadius->getValue());
             }
         }
+
+        // Update Button States every frame
+        btnAddNode->isActive = true;  // Always active
+        btnClear->isActive = true;  // Always active
+        btnLoad->isActive = true;  // Always active
+        btnSave->isActive = true;  // Always active
+
+        // Delete Node active if 1 or 2 nodes selected
+        btnDelNode->isActive = (selectedNodes.size() >= 1);
+
+        // Edge buttons only active if exactly 2 nodes selected
+        btnAddEdge->isActive = (selectedNodes.size() == 2);
+        btnDelEdge->isActive = (selectedNodes.size() == 2);
 
         window.clear();
 
@@ -168,7 +206,7 @@ int main() {
         // Draw Node that follows mouse
         if (isAddingNode) {
             sf::Vector2f mousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
-            Node ghostNode(mousePos);
+            Node ghostNode(mousePos, -1);
 
             // Set to semi-transparent red (RGBA: 255, 0, 0, 127)
             ghostNode.shape.setFillColor(sf::Color(255, 0, 0, 127));

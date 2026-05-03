@@ -7,6 +7,7 @@ struct Button {
     sf::RectangleShape shape;
     sf::Text label;
     std::string name;
+    bool isActive;
 
     Button(std::string text, sf::Vector2f pos, sf::Font& font)
         : label(font, text, 18)
@@ -34,6 +35,14 @@ struct Button {
     }
 
     void draw(sf::RenderWindow& window) {
+        if (!isActive) {
+            shape.setFillColor(sf::Color(60, 60, 60)); // Dark Grey
+            label.setFillColor(sf::Color(100, 100, 100)); // Dimmed Text
+        }
+        else {
+            shape.setFillColor(sf::Color::Blue); // original color
+            label.setFillColor(sf::Color::White);
+        }
         window.draw(shape);
         window.draw(label);
     }

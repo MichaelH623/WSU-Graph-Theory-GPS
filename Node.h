@@ -7,23 +7,22 @@ struct Node {
     int id;
     sf::Vector2f position;
     sf::CircleShape shape;
-    std::vector<int> neighbors;
+    bool isSelected;
 
     // Node constructor
-    Node(sf::Vector2f pos) {
+    Node(sf::Vector2f pos, int nodeId) {
+        id = nodeId;
         position = pos;
-
-        // Visual setup
+        isSelected = false;
         shape.setRadius(10.f);
         shape.setFillColor(sf::Color::Red);
-
-        // Center the circle so it sticks to the mouse by its middle
         shape.setOrigin({ 10.f, 10.f });
         shape.setPosition(pos);
     }
 
-    // Nodes draw method
     void draw(sf::RenderWindow& window) {
+        // Change color if selected to "light it up"
+        shape.setFillColor(isSelected ? sf::Color::Yellow : sf::Color::Red);
         window.draw(shape);
     }
 };
