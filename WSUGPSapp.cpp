@@ -141,7 +141,7 @@ int main() {
                             std::cout << "User Is Placing Node\n";
                         }
                         else if (isAddingNode) {
-                            nodes.emplace_back(mousePos, static_cast<int>(nodes.size()));
+                            nodes.emplace_back(mousePos, nextNodeID++);
 
                             // Automatically connect based on the radius in the TextBox
                             recalculateEdges(nodes, edges, txtRadius->getValue());
