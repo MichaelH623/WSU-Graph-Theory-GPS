@@ -8,6 +8,7 @@ struct Node {
     sf::Vector2f position;
     sf::CircleShape shape;
     bool isSelected;
+    std::string name;
 
     // Node constructor
     Node(sf::Vector2f pos, int nodeId) {
@@ -18,6 +19,7 @@ struct Node {
         shape.setFillColor(sf::Color::Red);
         shape.setOrigin({ 10.f, 10.f });
         shape.setPosition(pos);
+        name = std::to_string(nodeId);
     }
 
     void draw(sf::RenderWindow& window) {

@@ -10,20 +10,17 @@
 
 namespace fs = std::filesystem;
 
-void recalculateEdges(std::vector<Node>& nodes, std::vector<Edge>& edges, float radius) {
-    // Wipe old edges
-    edges.clear();
-    for (size_t i = 0; i < nodes.size(); ++i) {
-        for (size_t j = i + 1; j < nodes.size(); ++j) {
-            // Standard distance formula: sqrt(dx^2 + dy^2)
-            float dx = nodes[i].position.x - nodes[j].position.x;
-            float dy = nodes[i].position.y - nodes[j].position.y;
-            float distance = std::sqrt(dx * dx + dy * dy);
+void connectNewNode(Node& newNode, std::vector<Node>& allNodes, std::vector<Edge>& edges, float radius) {
+    for (auto& otherNode : allNodes) {
+        if (newNode.id == otherNode.id) continue;
 
-            if (distance <= radius) {
-                // This call triggers the Edge constructor
-                edges.emplace_back(nodes[i].position, nodes[j].position);
-            }
+        float dx = newNode.position.x - otherNode.position.x;
+        float dy = newNode.position.y - otherNode.position.y;
+        float distance = std::sqrt(dx * dx + dy * dy);
+
+        if (distance <= radius) {
+            // Pass the IDs here!
+            edges.emplace_back(newNode.position, otherNode.position, newNode.id, otherNode.id);
         }
     }
 }
@@ -144,28 +141,39 @@ int main() {
                             nodes.emplace_back(mousePos, nextNodeID++);
 
                             // Automatically connect based on the radius in the TextBox
-                            recalculateEdges(nodes, edges, txtRadius->getValue());
+                            connectNewNode(nodes.back(), nodes, edges, txtRadius->getValue());
 
                             isAddingNode = false; // puts the node down on the map
                             std::cout << "Node Added at: " << mousePos.x << ", " << mousePos.y << "\n";
                         }
                         if (btnDelNode->isClicked(mousePos) && btnDelNode->isActive) {
-                            std::cout << "Delete Node Clicked\n";
-
                             for (int selectedID : selectedNodeIDs) {
-                                // Compare the node's ID directly to the selectedID
-                                nodes.erase(std::remove_if(nodes.begin(), nodes.end(),
-                                    [selectedID](const Node& n) { return n.id == selectedID; }),
-                                    nodes.end());
+                                sf::Vector2f targetPos;
+                                bool found = false;
+
+                                // Find the position of the node we are about to delete
+                                for (auto& n : nodes) {
+                                    if (n.id == selectedID) {
+                                        targetPos = n.position;
+                                        found = true;
+                                        break;
+                                    }
+                                }
+
+                                if (found) {
+                                    // Remove edges connected to this position
+                                    edges.erase(std::remove_if(edges.begin(), edges.end(),
+                                        [targetPos](const Edge& e) {
+                                            return (e.line[0].position == targetPos || e.line[1].position == targetPos);
+                                        }), edges.end());
+
+                                    // Remove the node itself
+                                    nodes.erase(std::remove_if(nodes.begin(), nodes.end(),
+                                        [selectedID](const Node& n) { return n.id == selectedID; }),
+                                        nodes.end());
+                                }
                             }
-
-                            // Clear selection since the nodes no longer exist
                             selectedNodeIDs.clear();
-
-                            // Rebuild edges based on remaining nodes
-                            recalculateEdges(nodes, edges, txtRadius->getValue());
-
-                            std::cout << "Node(s) deleted and edges recalculated.\n";
                         }
                         if (btnAddEdge->isClicked(mousePos) && btnAddEdge->isActive) {
                             std::cout << "Add Edge Clicked\n";
@@ -174,18 +182,22 @@ int main() {
                             int id1 = selectedNodeIDs[0];
                             int id2 = selectedNodeIDs[1];
 
-                            Node* n1 = nullptr;
-                            Node* n2 = nullptr;
+                            Node* node1 = nullptr;
+                            Node* node2 = nullptr;
 
                             // Find the actual node objects to get their positions
-                            for (auto& n : nodes) {
-                                if (n.id == id1) n1 = &n;
-                                if (n.id == id2) n2 = &n;
+                            for (auto& node : nodes) {
+                                if (node.id == id1) {
+                                    node1 = &node;
+                                }
+                                if (node.id == id2) {
+                                    node2 = &node;
+                                }
                             }
 
-                            if (n1 && n2) {
+                            if (node1 && node2) {
                                 // Add a new edge between these two positions
-                                edges.emplace_back(n1->position, n2->position);
+                                edges.emplace_back(node1->position, node2->position, id1, id2);
                                 std::cout << "Manual Edge added between Node " << id1 << " and " << id2 << "\n";
                             }
                         }
@@ -237,11 +249,76 @@ int main() {
 
                             std::cout << "Graph fully reset.\n";
                         }
-                        if (btnLoad->isClicked(mousePos)) {
-                            std::cout << "Load Clicked\n";
+                        if (btnLoad->isClicked(mousePos) && btnLoad->isActive) {
+                            std::ifstream inFile("campus_graph.txt");
+                            if (inFile.is_open()) {
+                                nodes.clear();
+                                edges.clear();
+                                selectedNodeIDs.clear();
+
+                                size_t nodeCount, edgeCount;
+                                int maxID = -1;
+
+                                // Load Nodes
+                                if (!(inFile >> nodeCount)) return;
+                                for (size_t i = 0; i < nodeCount; ++i) {
+                                    int id; float x, y; std::string name;
+                                    inFile >> id >> x >> y >> name;
+
+                                    Node newNode({ x, y }, id);
+                                    newNode.name = name;
+                                    nodes.push_back(newNode);
+
+                                    if (id > maxID) maxID = id;
+                                }
+                                // Sync our global counter so next added node is unique
+                                nextNodeID = maxID + 1;
+
+                                // Load Edges
+                                if (!(inFile >> edgeCount)) return;
+                                for (size_t i = 0; i < edgeCount; ++i) {
+                                    int uID, vID;
+                                    inFile >> uID >> vID;
+
+                                    // Find the positions for these IDs to recreate the visual edge
+                                    sf::Vector2f p1, p2;
+                                    bool foundU = false, foundV = false;
+                                    for (const auto& n : nodes) {
+                                        if (n.id == uID) { p1 = n.position; foundU = true; }
+                                        if (n.id == vID) { p2 = n.position; foundV = true; }
+                                    }
+
+                                    if (foundU && foundV) {
+                                        edges.emplace_back(p1, p2, uID, vID);
+                                    }
+                                }
+
+                                inFile.close();
+                                std::cout << "Graph loaded. Next ID will be: " << nextNodeID << "\n";
+                            }
                         }
-                        if (btnSave->isClicked(mousePos)) {
-                            std::cout << "Save Clicked\n";
+                        if (btnSave->isClicked(mousePos) && btnSave->isActive) {
+                            std::ofstream outFile("campus_graph.txt");
+                            if (outFile.is_open()) {
+                                // Save Nodes: Count, then [ID X Y Name]
+                                outFile << nodes.size() << "\n";
+                                for (const auto& n : nodes) {
+                                    // Use a delimiter or ensure the name doesn't have spaces for simple parsing
+                                    outFile << n.id << " " << n.position.x << " " << n.position.y << " " << n.name << "\n";
+                                }
+
+                                // Save Edges: Count, then [ID_U ID_V]
+                                outFile << edges.size() << "\n";
+                                for (const auto& e : edges) {
+                                    outFile << e.u << " " << e.v << "\n";
+                                }
+
+                                outFile.close();
+                                std::cout << "Graph successfully saved to campus_graph.txt\n";
+                            }
+                            else {
+                                std::cerr << "Error: Could not open file for saving.\n";
+                            }
                         }
                     }
                 }
