@@ -167,14 +167,75 @@ int main() {
 
                             std::cout << "Node(s) deleted and edges recalculated.\n";
                         }
-                        if (btnAddEdge->isClicked(mousePos)) {
+                        if (btnAddEdge->isClicked(mousePos) && btnAddEdge->isActive) {
                             std::cout << "Add Edge Clicked\n";
+
+                            // We know selectedNodeIDs.size() == 2 because of the isActive check
+                            int id1 = selectedNodeIDs[0];
+                            int id2 = selectedNodeIDs[1];
+
+                            Node* n1 = nullptr;
+                            Node* n2 = nullptr;
+
+                            // Find the actual node objects to get their positions
+                            for (auto& n : nodes) {
+                                if (n.id == id1) n1 = &n;
+                                if (n.id == id2) n2 = &n;
+                            }
+
+                            if (n1 && n2) {
+                                // Add a new edge between these two positions
+                                edges.emplace_back(n1->position, n2->position);
+                                std::cout << "Manual Edge added between Node " << id1 << " and " << id2 << "\n";
+                            }
                         }
-                        if (btnDelEdge->isClicked(mousePos)) {
+                        if (btnDelEdge->isClicked(mousePos) && btnDelEdge->isActive) {
                             std::cout << "Delete Edge Clicked\n";
+
+                            // We know selectedNodeIDs.size() == 2 because of the isActive check
+                            int id1 = selectedNodeIDs[0];
+                            int id2 = selectedNodeIDs[1];
+
+                            sf::Vector2f pos1, pos2;
+                            bool found1 = false, found2 = false;
+
+                            // Find the actual node objects to get their positions
+                            for (auto& n : nodes) {
+                                if (n.id == id1) { pos1 = n.position; found1 = true; }
+                                if (n.id == id2) { pos2 = n.position; found2 = true; }
+                            }
+
+                            if (found1 && found2) {
+                                edges.erase(std::remove_if(edges.begin(), edges.end(),
+                                    [pos1, pos2](const Edge& e) {
+                                        // Check if the edge connects pos1 and pos2 (either direction)
+                                        sf::Vector2f start = e.line[0].position;
+                                        sf::Vector2f end = e.line[1].position;
+                                        return (start == pos1 && end == pos2) || (start == pos2 && end == pos1);
+                                    }), edges.end());
+
+                                std::cout << "Edge removed between Node " << id1 << " and " << id2 << "\n";
+                            }
                         }
                         if (btnClear->isClicked(mousePos)) {
                             std::cout << "Clear All Clicked\n";
+
+                            // Clear the data vectors
+                            nodes.clear();
+                            edges.clear();
+
+                            // Clear the selection state
+                            selectedNodeIDs.clear();
+
+                            // 3. Reset the ID counter
+                            // This ensures new nodes start back at ID 0
+                            nextNodeID = 0;
+
+                            // Reset placement states
+                            isAddingNode = false;
+                            isAddingEdge = false;
+
+                            std::cout << "Graph fully reset.\n";
                         }
                         if (btnLoad->isClicked(mousePos)) {
                             std::cout << "Load Clicked\n";
