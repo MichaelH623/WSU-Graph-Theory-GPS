@@ -137,6 +137,9 @@
     <ClCompile Include="TextBox.h" />
     <ClCompile Include="WSUGPSapp.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="FileSystemTextBox.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

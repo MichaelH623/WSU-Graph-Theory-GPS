@@ -7,6 +7,7 @@
 #include "Node.h"
 #include "Edge.h"
 #include "TextBox.h"
+#include "FileSystemTextBox.h"
 
 namespace fs = std::filesystem;
 
@@ -47,7 +48,7 @@ int main() {
 
     // Load from memory
     if (!font.openFromMemory(fontBuffer.data(), fontBuffer.size())) {
-        std::cerr << "SFML failed to parse font data from memory!" << std::endl;
+        std::cerr << "SFML failed to parse font data from memory" << std::endl;
         return -1;
     }
 
@@ -84,6 +85,10 @@ int main() {
 
     // Creates the text box to set edge radius
     auto txtRadius = std::make_unique<TextBox>(sf::Vector2f(450, 1365), font);
+
+    // New file boxes under Save and Load buttons
+    auto txtSaveFile = std::make_unique<FileSystemTextBox>(sf::Vector2f(1250, 1365), font, "graphFile");
+    auto txtLoadFile = std::make_unique<FileSystemTextBox>(sf::Vector2f(1050, 1365), font, "graphFile");
 
     // Stores all the Nodes
     std::vector<Node> nodes;
@@ -130,6 +135,8 @@ int main() {
                     if (!clickedNode) {
                         // Checks if mouse click is inside text box
                         txtRadius->isSelected = txtRadius->box.getGlobalBounds().contains(mousePos);
+                        txtSaveFile->isSelected = txtSaveFile->box.getGlobalBounds().contains(mousePos);
+                        txtLoadFile->isSelected = txtLoadFile->box.getGlobalBounds().contains(mousePos);
 
                         // Checks if mouse clicked on a button
                         if (btnAddNode->isClicked(mousePos)) {
@@ -239,7 +246,6 @@ int main() {
                             // Clear the selection state
                             selectedNodeIDs.clear();
 
-                            // 3. Reset the ID counter
                             // This ensures new nodes start back at ID 0
                             nextNodeID = 0;
 
@@ -250,7 +256,14 @@ int main() {
                             std::cout << "Graph fully reset.\n";
                         }
                         if (btnLoad->isClicked(mousePos) && btnLoad->isActive) {
-                            std::ifstream inFile("campus_graph.txt");
+                            std::string fileName = txtLoadFile->getStringValue();
+
+                            if (fileName.empty()) {
+                                fileName = "graphFile";
+                            }
+
+                            std::ifstream inFile(fileName + ".txt");
+
                             if (inFile.is_open()) {
                                 nodes.clear();
                                 edges.clear();
@@ -260,7 +273,9 @@ int main() {
                                 int maxID = -1;
 
                                 // Load Nodes
-                                if (!(inFile >> nodeCount)) return;
+                                if (!(inFile >> nodeCount)) {
+                                    return 1;
+                                }
                                 for (size_t i = 0; i < nodeCount; ++i) {
                                     int id; float x, y; std::string name;
                                     inFile >> id >> x >> y >> name;
@@ -275,7 +290,9 @@ int main() {
                                 nextNodeID = maxID + 1;
 
                                 // Load Edges
-                                if (!(inFile >> edgeCount)) return;
+                                if (!(inFile >> edgeCount)) {
+                                    return 1;
+                                }
                                 for (size_t i = 0; i < edgeCount; ++i) {
                                     int uID, vID;
                                     inFile >> uID >> vID;
@@ -296,9 +313,18 @@ int main() {
                                 inFile.close();
                                 std::cout << "Graph loaded. Next ID will be: " << nextNodeID << "\n";
                             }
+                            else {
+                                std::cout << "Error: The File " << nextNodeID << ".txt could not be found\n";
+                            }
                         }
                         if (btnSave->isClicked(mousePos) && btnSave->isActive) {
-                            std::ofstream outFile("campus_graph.txt");
+                            std::string fileName = txtSaveFile->getStringValue();
+
+                            if (fileName.empty()) {
+                                fileName = "graphFile";
+                            }
+
+                            std::ofstream outFile(fileName + ".txt");
                             if (outFile.is_open()) {
                                 // Save Nodes: Count, then [ID X Y Name]
                                 outFile << nodes.size() << "\n";
@@ -314,7 +340,7 @@ int main() {
                                 }
 
                                 outFile.close();
-                                std::cout << "Graph successfully saved to campus_graph.txt\n";
+                                std::cout << "Graph successfully saved to " << fileName << ".txt\n";
                             }
                             else {
                                 std::cerr << "Error: Could not open file for saving.\n";
@@ -328,6 +354,8 @@ int main() {
             if (event->is<sf::Event::TextEntered>()) {
                 auto textEvent = *event->getIf<sf::Event::TextEntered>();
                 txtRadius->handleInput(textEvent);
+                txtSaveFile->handleInput(textEvent);
+                txtLoadFile->handleInput(textEvent);
                 // recalculateEdges(nodes, edges, txtRadius->getValue());
             }
         }
@@ -375,7 +403,9 @@ int main() {
         btnSave->draw(window);
         // Draw text box
         txtRadius->draw(window);
-
+        txtSaveFile->draw(window);
+        txtLoadFile->draw(window);
+        // Show the new frame
         window.display();
     }
     return 0;
