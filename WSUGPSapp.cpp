@@ -93,11 +93,13 @@ int main() {
     // Stores all the Edges
     std::vector<Edge> edges;
     // Stores the currently selected Nodes
-    std::vector<Node*> selectedNodes;
+    std::vector<int> selectedNodeIDs;
     // Determines if they are currently adding a Node
     bool isAddingNode = false;
     // Determines if they are currently adding a Edge
     bool isAddingEdge = false;
+    // Keeps track of Node IDs
+    int nextNodeID = 0;
 
     while (window.isOpen()) {
         while (const std::optional event = window.pollEvent()) {
@@ -116,14 +118,12 @@ int main() {
                             if (node.shape.getGlobalBounds().contains(mousePos)) {
                                 clickedNode = true;
                                 if (node.isSelected) {
-                                    // Deselect
                                     node.isSelected = false;
-                                    selectedNodes.erase(std::remove(selectedNodes.begin(), selectedNodes.end(), &node), selectedNodes.end());
+                                    selectedNodeIDs.erase(std::remove(selectedNodeIDs.begin(), selectedNodeIDs.end(), node.id), selectedNodeIDs.end());
                                 }
-                                else if (selectedNodes.size() < 2) {
-                                    // Select if we have room
+                                else if (selectedNodeIDs.size() < 2) {
                                     node.isSelected = true;
-                                    selectedNodes.push_back(&node);
+                                    selectedNodeIDs.push_back(node.id);
                                 }
                                 break; // Stop after finding the node the user clicked
                             }
@@ -149,8 +149,23 @@ int main() {
                             isAddingNode = false; // puts the node down on the map
                             std::cout << "Node Added at: " << mousePos.x << ", " << mousePos.y << "\n";
                         }
-                        if (btnDelNode->isClicked(mousePos)) {
+                        if (btnDelNode->isClicked(mousePos) && btnDelNode->isActive) {
                             std::cout << "Delete Node Clicked\n";
+
+                            for (int selectedID : selectedNodeIDs) {
+                                // Compare the node's ID directly to the selectedID
+                                nodes.erase(std::remove_if(nodes.begin(), nodes.end(),
+                                    [selectedID](const Node& n) { return n.id == selectedID; }),
+                                    nodes.end());
+                            }
+
+                            // Clear selection since the nodes no longer exist
+                            selectedNodeIDs.clear();
+
+                            // Rebuild edges based on remaining nodes
+                            recalculateEdges(nodes, edges, txtRadius->getValue());
+
+                            std::cout << "Node(s) deleted and edges recalculated.\n";
                         }
                         if (btnAddEdge->isClicked(mousePos)) {
                             std::cout << "Add Edge Clicked\n";
@@ -186,11 +201,11 @@ int main() {
         btnSave->isActive = true;  // Always active
 
         // Delete Node active if 1 or 2 nodes selected
-        btnDelNode->isActive = (selectedNodes.size() >= 1);
+        btnDelNode->isActive = (selectedNodeIDs.size() >= 1);
 
         // Edge buttons only active if exactly 2 nodes selected
-        btnAddEdge->isActive = (selectedNodes.size() == 2);
-        btnDelEdge->isActive = (selectedNodes.size() == 2);
+        btnAddEdge->isActive = (selectedNodeIDs.size() == 2);
+        btnDelEdge->isActive = (selectedNodeIDs.size() == 2);
 
         window.clear();
 
