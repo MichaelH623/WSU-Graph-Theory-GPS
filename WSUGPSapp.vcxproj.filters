@@ -18,14 +18,17 @@
     <ClCompile Include="WSUGPSapp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Node.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="TextBox.h">
+      <Filter>Header Files</Filter>
     </ClCompile>
-    <ClCompile Include="Edge.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Button.h">
+      <Filter>Header Files</Filter>
     </ClCompile>
-    <ClCompile Include="Button.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Edge.h">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Node.h">
+      <Filter>Header Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

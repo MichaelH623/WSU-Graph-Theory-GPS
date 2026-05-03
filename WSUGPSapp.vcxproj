@@ -131,9 +131,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Button.cpp" />
-    <ClCompile Include="Edge.cpp" />
-    <ClCompile Include="Node.cpp" />
+    <ClCompile Include="Button.h" />
+    <ClCompile Include="Edge.h" />
+    <ClCompile Include="Node.h" />
+    <ClCompile Include="TextBox.h" />
     <ClCompile Include="WSUGPSapp.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
