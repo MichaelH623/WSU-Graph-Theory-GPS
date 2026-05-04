@@ -1,0 +1,305 @@
+104
+0 1088 59 Valley Road Play Fields
+1 1131 280 Student Rec Center
+2 1325 149 Marriott Inn
+3 1149 216 BasketBall Court
+4 1153 186 VollyBall Court
+5 1328 279 Outdoor Rec Shop
+6 1210 367 Tennis Court
+7 1120 497 Bailey Brayton Fields
+8 962 460 Beasley Coliseum
+9 1107 582 Indoor Practice Facility
+10 857 599 Mooberry Track
+11 1026 642 Vet Reaserch building
+12 981 671 Biotechnology Science
+13 1100 655 Food Science
+14 1107 718 Clark Building
+15 1158 699 Animal Science
+16 1155 724 Animal Lab
+17 1143 753 Hulbert Building
+18 1231 727 Alumni Arboretum
+19 1341 709 Plant Intro Station
+20 1291 759 Meat Lab
+21 1339 755 IBC Greenhouse
+22 1344 793 IBC Plant
+23 1012 737 Johnson Building
+24 951 759 Vogel Building
+25 1341 944 Grimes Steam Plant
+26 1227 909 Agronomy Seed House
+27 1592 861 Food Services
+28 1709 849 Feed Plant
+29 1622 947 McCluckey Services
+30 1644 1000 Creamery Annex
+31 1658 1035 Surplus Stores
+32 1809 845 Cattle Feeding Lab
+33 1955 872 Enviroment Health Serv
+34 1517 998 Vet Maintence Shops
+35 1181 860 Plant Science
+36 1194 813 Lewis Alumni center
+37 1216 1154 Hitchcock Equine Track
+38 1092 861 Grimes Way PlayField
+39 996 834 Lightly Student Servies
+40 964 847 French admin Building
+41 849 740 Martin Stadium
+42 793 650 HollingBery FieldHouse
+43 740 665 Bohler Athletic Complex
+44 679 665 Physical Education
+45 638 666 Smith Gym
+46 718 732 Rogers Field
+47 736 799 Bookstore
+48 785 860 Police
+49 855 877 Fine arts Muesam
+50 589 717 Kimbrough Music
+51 610 744 Van Doren
+52 639 789 Holland Library
+53 571 782 Bryan building
+54 549 747 Avery Building
+55 679 874 Todd Addition
+56 650 903 Todd Hall
+57 727 912 Johnson Tower
+58 782 902 Smith Center
+59 781 928 cyber Cafe
+60 730 952 Troy Hall
+61 630 938 Fulmer Hall
+62 542 840 Murrow Hall
+63 538 780 Stevens Dorm
+64 471 761 McCroskey Hall
+65 405 764 Honors Hall
+66 357 844 Elect/Mech Engineering
+67 288 880 Thermal fluids Lab
+68 464 910 Daggy Hall
+69 530 945 Hearld Hall
+70 529 896 East Lick
+71 572 945 Abelson Hall
+72 573 992 Owen Science lab
+73 522 1008 Cleavelend Hall
+74 498 1039 Education Addition
+75 460 1045 Commons
+76 290 928 Energy Lab
+77 252 925 Steam Plant
+78 329 944 Engineer Reasearch lab
+79 682 1000 Webster labs
+80 679 1037 Neill hall
+81 73 927 Belsfo=ord Visitor Center
+82 531 1114 Health and Wellness
+83 700 1131 Southside
+84 748 1062 Ganon Dorms
+85 811 1039 Wegner Hall
+86 863 1013 Mcroy hall
+87 945 1052 Vet Tech Teaching
+88 927 973 Bustad
+89 1050 918 Lj Smith Hall
+90 1056 978 Central Stores
+91 1168 913 Paccar Enviroment Tech
+92 536 1214 Stephenson
+93 541 1171 Stephenson North
+94 548 1263 Stephenson South
+95 789 1162 McEachern Hall
+96 857 1109 Olympia Avenue
+97 659 1230 WSU children center
+98 632 1212 Rodgers
+99 700 1211 orton
+100 1186 482 Batting Facility
+101 1034 1111 Allen Center
+102 792 1210 Rodger Orton Field
+103 413 907 Carpenter Hall
+199
+3 1
+4 1
+4 3
+9 7
+12 11
+13 9
+13 11
+14 13
+15 13
+15 14
+16 13
+16 14
+16 15
+17 14
+17 15
+17 16
+18 15
+18 16
+18 17
+20 18
+20 19
+7 8
+7 6
+6 5
+5 2
+2 4
+4 0
+1 6
+1 8
+21 19
+21 20
+22 19
+22 20
+22 21
+23 11
+23 12
+23 14
+24 12
+24 23
+25 22
+26 25
+27 25
+27 22
+28 27
+29 27
+30 29
+31 29
+31 30
+32 28
+33 32
+34 29
+34 30
+34 27
+35 26
+36 16
+36 17
+36 18
+36 35
+37 25
+37 26
+38 35
+39 23
+39 24
+39 38
+40 24
+40 39
+42 10
+41 42
+41 24
+43 42
+44 43
+45 44
+46 43
+46 44
+47 46
+48 47
+49 48
+48 41
+50 45
+51 45
+51 50
+52 46
+52 47
+52 50
+52 51
+53 50
+53 51
+53 52
+54 50
+54 51
+54 52
+54 53
+55 47
+55 52
+56 55
+57 48
+57 55
+57 56
+58 48
+58 49
+58 57
+59 48
+59 49
+59 57
+59 58
+60 55
+60 56
+60 57
+60 58
+60 59
+61 55
+61 56
+62 53
+62 54
+63 50
+63 51
+63 53
+63 54
+63 62
+64 54
+64 63
+65 64
+66 65
+67 66
+69 68
+70 62
+70 68
+70 69
+71 56
+71 61
+71 69
+71 70
+72 61
+72 69
+72 71
+73 69
+73 71
+73 72
+74 69
+74 72
+74 73
+75 73
+75 74
+76 67
+77 67
+77 76
+78 67
+78 76
+78 77
+79 57
+79 60
+79 61
+80 60
+80 79
+10 8
+82 74
+82 75
+83 80
+84 79
+84 80
+84 83
+85 84
+86 85
+87 86
+88 86
+88 87
+89 38
+89 39
+90 89
+91 26
+91 35
+91 38
+93 82
+93 92
+94 92
+94 93
+95 83
+96 85
+96 86
+96 95
+97 92
+97 83
+98 92
+98 93
+98 94
+98 97
+99 83
+99 97
+99 98
+100 7
+100 6
+101 87
+101 90
+102 95
+102 99
+103 66
+103 68
+103 78
+77 81

@@ -37,7 +37,7 @@ struct FileSystemTextBox {
         // Handle standard visible characters (letters, numbers, underscores, etc.)
         else if (textEvent.unicode >= 32 && textEvent.unicode <= 126) {
             // Limit length to keep it inside the box
-            if (inputString.length() < 15) {
+            if (inputString.length() < 25) {
                 inputString += static_cast<char>(textEvent.unicode);
             }
         }

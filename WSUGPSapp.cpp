@@ -8,6 +8,7 @@
 #include "Edge.h"
 #include "TextBox.h"
 #include "FileSystemTextBox.h"
+#include "DijkstraAlgorithm.h"
 
 namespace fs = std::filesystem;
 
@@ -24,6 +25,13 @@ void connectNewNode(Node& newNode, std::vector<Node>& allNodes, std::vector<Edge
             edges.emplace_back(newNode.position, otherNode.position, newNode.id, otherNode.id);
         }
     }
+}
+
+Node* findNodeByID(int id, std::vector<Node>& nodes) {
+    for (auto& n : nodes) {
+        if (n.id == id) return &n;
+    }
+    return nullptr;
 }
 
 int main() {
@@ -61,7 +69,9 @@ int main() {
         file.seekg(0, std::ios::beg);
         std::vector<char> buffer(size);
         file.read(buffer.data(), size);
-        campusTexture.loadFromMemory(buffer.data(), buffer.size());
+        if (!campusTexture.loadFromMemory(buffer.data(), buffer.size())) {
+            std::cerr << "Failed to load campus texture from memory!" << std::endl;
+        }
     }
     sf::Sprite background(campusTexture);
     
@@ -90,6 +100,12 @@ int main() {
     auto txtSaveFile = std::make_unique<FileSystemTextBox>(sf::Vector2f(1250, 1365), font, "graphFile");
     auto txtLoadFile = std::make_unique<FileSystemTextBox>(sf::Vector2f(1050, 1365), font, "graphFile");
 
+    // Text boxes showing selected Nodes data
+    auto txtNodeName1 = std::make_unique<FileSystemTextBox>(sf::Vector2f(1450, 1350), font, "");
+    auto txtNodeName2 = std::make_unique<FileSystemTextBox>(sf::Vector2f(1700, 1350), font, "");
+    sf::Text infoText(font, "", 18);
+    infoText.setFillColor(sf::Color::White);
+
     // Stores all the Nodes
     std::vector<Node> nodes;
     // Stores all the Edges
@@ -102,6 +118,58 @@ int main() {
     bool isAddingEdge = false;
     // Keeps track of Node IDs
     int nextNodeID = 0;
+
+    // Loads basic map
+    fs::path graphPath = fs::current_path() / "Assets" / "WSUMapGraph.txt";
+    std::ifstream inFile(graphPath);
+
+    if (inFile.is_open()) {
+        size_t nodeCount = 0;
+        int maxID = -1;
+
+        if (inFile >> nodeCount) {
+            for (size_t i = 0; i < nodeCount; ++i) {
+                int id; float x, y;
+                // Read the numbers first
+                if (!(inFile >> id >> x >> y)) break;
+
+                // 'std::ws' eats the single space sitting between the 'y' coordinate and the name
+                std::string name;
+                std::getline(inFile >> std::ws, name);
+
+                Node newNode({ x, y }, id);
+                newNode.name = name;
+                nodes.push_back(newNode);
+                if (id > maxID) maxID = id;
+            }
+            nextNodeID = maxID + 1;
+        }
+
+        size_t edgeCount = 0;
+        if (inFile >> edgeCount) {
+            for (size_t i = 0; i < edgeCount; ++i) {
+                int uID, vID;
+                if (!(inFile >> uID >> vID)) break;
+
+                sf::Vector2f p1, p2;
+                bool foundU = false, foundV = false;
+                for (const auto& n : nodes) {
+                    if (n.id == uID) { p1 = n.position; foundU = true; }
+                    if (n.id == vID) { p2 = n.position; foundV = true; }
+                }
+
+                if (foundU && foundV) {
+                    edges.emplace_back(p1, p2, uID, vID);
+                }
+            }
+        }
+        inFile.close();
+        std::cout << "Successfully loaded " << nodes.size() << " nodes and " << edges.size() << " edges.\n";
+    }
+    else {
+        // If it fails, just log it and open an empty map instead of crashing
+        std::cerr << "Note: Default graph not found at " << graphPath.string() << ". Starting with empty map." << std::endl;
+    }
 
     while (window.isOpen()) {
         while (const std::optional event = window.pollEvent()) {
@@ -119,6 +187,7 @@ int main() {
                         for (auto& node : nodes) {
                             if (node.shape.getGlobalBounds().contains(mousePos)) {
                                 clickedNode = true;
+                                // Selected Nodes section
                                 if (node.isSelected) {
                                     node.isSelected = false;
                                     selectedNodeIDs.erase(std::remove(selectedNodeIDs.begin(), selectedNodeIDs.end(), node.id), selectedNodeIDs.end());
@@ -127,7 +196,29 @@ int main() {
                                     node.isSelected = true;
                                     selectedNodeIDs.push_back(node.id);
                                 }
-                                break; // Stop after finding the node the user clicked
+
+                                // UI refresh to update text boxes names
+                                // Wipe both boxes first to ensure no ghost data stays behind
+                                txtNodeName1->inputString = "";
+                                txtNodeName1->displayValue.setString("");
+                                txtNodeName2->inputString = "";
+                                txtNodeName2->displayValue.setString("");
+
+                                // Re-populate based on the new state of the objects
+                                if (selectedNodeIDs.size() >= 1) {
+                                    Node* n1 = findNodeByID(selectedNodeIDs[0], nodes);
+                                    if (n1) {
+                                        txtNodeName1->inputString = n1->name;
+                                        txtNodeName1->displayValue.setString(n1->name);
+                                    }
+                                }
+                                if (selectedNodeIDs.size() == 2) {
+                                    Node* n2 = findNodeByID(selectedNodeIDs[1], nodes);
+                                    if (n2) {
+                                        txtNodeName2->inputString = n2->name;
+                                        txtNodeName2->displayValue.setString(n2->name);
+                                    }
+                                }
                             }
                         }
                     }
@@ -137,6 +228,8 @@ int main() {
                         txtRadius->isSelected = txtRadius->box.getGlobalBounds().contains(mousePos);
                         txtSaveFile->isSelected = txtSaveFile->box.getGlobalBounds().contains(mousePos);
                         txtLoadFile->isSelected = txtLoadFile->box.getGlobalBounds().contains(mousePos);
+                        txtNodeName1->isSelected = txtNodeName1->box.getGlobalBounds().contains(mousePos);
+                        txtNodeName2->isSelected = txtNodeName2->box.getGlobalBounds().contains(mousePos);
 
                         // Checks if mouse clicked on a button
                         if (btnAddNode->isClicked(mousePos)) {
@@ -245,6 +338,10 @@ int main() {
 
                             // Clear the selection state
                             selectedNodeIDs.clear();
+                            txtNodeName1->inputString = "";
+                            txtNodeName1->displayValue.setString("");
+                            txtNodeName2->inputString = "";
+                            txtNodeName2->displayValue.setString("");
 
                             // This ensures new nodes start back at ID 0
                             nextNodeID = 0;
@@ -356,6 +453,8 @@ int main() {
                 txtRadius->handleInput(textEvent);
                 txtSaveFile->handleInput(textEvent);
                 txtLoadFile->handleInput(textEvent);
+                txtNodeName1->handleInput(textEvent);
+                txtNodeName2->handleInput(textEvent);
                 // recalculateEdges(nodes, edges, txtRadius->getValue());
             }
         }
@@ -377,10 +476,29 @@ int main() {
 
         // Draw background
         window.draw(background);
-        // Draw Edges and Nodes
+        // Finds the shortest path between nodes and stores it in Path Result
+        PathResult currentPath;
+        if (selectedNodeIDs.size() == 2) {
+            currentPath = findShortestPath(selectedNodeIDs[0], selectedNodeIDs[1], nodes, edges);
+        }
+        // Draw Edges
         for (auto& edge : edges) {
             edge.draw(window);
         }
+        // Draw Highlighted shortest path
+        if (selectedNodeIDs.size() == 2 && currentPath.distance >= 0) {
+            sf::VertexArray highlightedLines(sf::PrimitiveType::LineStrip);
+
+            for (int pathNodeID : currentPath.path) {
+                Node* n = findNodeByID(pathNodeID, nodes);
+                if (n) {
+                    // Add each node's position to the line and color it green
+                    highlightedLines.append(sf::Vertex{ n->position, sf::Color::Green });
+                }
+            }
+            window.draw(highlightedLines);
+        }
+        // Draw Nodes
         for (auto& node : nodes) {
             node.draw(window);
         }
@@ -389,7 +507,7 @@ int main() {
             sf::Vector2f mousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
             Node ghostNode(mousePos, -1);
 
-            // Set to semi-transparent red (RGBA: 255, 0, 0, 127)
+            // Set to semi-transparent red
             ghostNode.shape.setFillColor(sf::Color(255, 0, 0, 127));
             ghostNode.draw(window);
         }
@@ -405,6 +523,50 @@ int main() {
         txtRadius->draw(window);
         txtSaveFile->draw(window);
         txtLoadFile->draw(window);
+        // Draw selected nodes section
+        if (!selectedNodeIDs.empty()) {
+            Node* n1 = findNodeByID(selectedNodeIDs[0], nodes);
+            if (n1) {
+                // Drawing the elements
+                infoText.setString("Selected Node 1:\nID: " + std::to_string(n1->id));
+                infoText.setPosition({ 1450, 1300 });
+                window.draw(infoText);
+                txtNodeName1->draw(window);
+
+                // Syncing system only update the node name if the box is being interacted with
+                if (txtNodeName1->isSelected) {
+                    n1->name = txtNodeName1->getStringValue();
+                }
+            }
+
+            if (selectedNodeIDs.size() == 2) {
+                Node* n2 = findNodeByID(selectedNodeIDs[1], nodes);
+                if (n2) {
+                    infoText.setString("Selected Node 2:\nID: " + std::to_string(n2->id));
+                    infoText.setPosition({ 1700, 1300 });
+                    window.draw(infoText);
+                    txtNodeName2->draw(window);
+
+                    if (txtNodeName2->isSelected) {
+                        n2->name = txtNodeName2->getStringValue();
+                    }
+
+                    // Shortest Path Calculated by Dijkstra's algorithm
+                    if (currentPath.distance >= 0) {
+                        // Rounding to 1 decimal place and also converting from pixel length to meters
+                        std::string distStr = std::to_string(currentPath.distance * 1.396765498);
+                        distStr = distStr.substr(0, distStr.find(".") + 2);
+                        infoText.setString("Shortest Path Approximately: " + distStr + " meters");
+                    }
+                    else {
+                        infoText.setString("Shortest Path Approximately: No route found");
+                    }
+                    // shows numerical value of the path's weights combined
+                    infoText.setPosition({ 1700, 1300 });
+                    window.draw(infoText);
+                }
+            }
+        }
         // Show the new frame
         window.display();
     }

@@ -28,6 +28,9 @@ struct Button {
         sf::FloatRect textRect = label.getLocalBounds();
         label.setOrigin({ textRect.position.x + textRect.size.x / 2.0f, textRect.position.y + textRect.size.y / 2.0f });
         label.setPosition({ pos.x + 90.f, pos.y + 30.f });
+
+        // pre set button as inactive
+        isActive = false;
     }
 
     bool isClicked(sf::Vector2f mousePos) {
